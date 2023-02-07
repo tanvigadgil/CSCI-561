@@ -18,14 +18,14 @@ def createNode(col, row):
     return tuple([int(col), int(row)])
 
 # Function to check conditions if the move is valid
-def isMoveValid(parent, node):
+def isMoveValid(parent, node, momentum = 0):
     if node[0] < 0 or node[0] >= mapSize[0] or node[1] < 0 or node[1] >= mapSize[1]: 
         return False
 
     if abs(elevation[parent[1]][parent[0]]) >= abs(elevation[node[1]][node[0]]):
         return True
     else:
-        if elevation[node[1]][node[0]] > 0 and abs(elevation[node[1]][node[0]]) - abs(elevation[parent[1]][parent[0]]) <= stamina:
+        if elevation[node[1]][node[0]] > 0 and abs(elevation[node[1]][node[0]]) - abs(elevation[parent[1]][parent[0]]) <= stamina + momentum:
             return True
     return False
 
@@ -82,10 +82,47 @@ def UCS(start, goal):
     # If queue is empty
     return False
 
+# Function for Heuristic
+def heuristic(node, goal):
+    return abs(node[0] - goal[0]) + abs(node[1] - goal[1])
+
+# Function for A*
+def AStar(start, goal):
+    priorityQueue = list() # 2D array => [cost, node, parent, parentHCost]
+    visited = dict() # Dictionary => [node : (cost, parent)]
+
+    heapq.heappush(priorityQueue, (0, start, None, 0))
+
+    while(priorityQueue):
+        cost, currentNode, parent, parentHCost = heapq.heappop(priorityQueue)
+        cost = cost - parentHCost
+
+        if currentNode in visited and visited[currentNode][0] < cost:
+            continue
+
+        visited[currentNode] = (cost, parent) 
+        if currentNode == goal:
+            return visited
+
+        for neighbour in neighbours:
+            neighbourNode = createNode(currentNode[0] + neighbour[0], currentNode[1] + neighbour[1])
+            momentum = 0
+                
+            if isMoveValid(currentNode, neighbourNode, momentum):
+                if abs(elevation[neighbourNode[1]][neighbourNode[0]]) - abs(elevation[currentNode[1]][currentNode[0]]) > 0 and parent is not None:
+                    momentum = max(0, elevation[parent[1]][parent[0]] - elevation[currentNode[1]][currentNode[0]])
+
+                ecc = max(0, elevation[neighbourNode[1]][neighbourNode[0]] - elevation[currentNode[1]][currentNode[0]] - momentum)
+                neighbourCost = cost + pathCosts[neighbours.index(neighbour)] + heuristic(neighbourNode, goal) + ecc
+                if neighbourNode not in visited or visited[neighbourNode][0] > neighbourCost:
+                    heapq.heappush(priorityQueue, (neighbourCost, neighbourNode, currentNode, heuristic(neighbourNode, goal)))
+
+    # If queue is empty
+    return False
 
 if __name__ == "__main__":
     # Read the input file
-    file = open('input2.txt', 'r')
+    file = open('testcases/inputa10.txt', 'r')
     Lines = file.readlines()
 
     # Store the data in variables
@@ -124,15 +161,16 @@ if __name__ == "__main__":
             if visited:
                 if goal in visited:
                     node = goal
-                    
                     while node != startNode:
                         outputList.append(node)
                         node = visited[node]
+                    
+
                     outputList.append(startNode)
                     outputList.reverse()
-                    output = output + " ".join("%s,%s" %tup for tup in outputList) + "\n"
+                    output += " ".join("%s,%s" %tup for tup in outputList) + "\n"
             else:
-                output = "FAIL"
+                output += "FAIL\n"
 
     elif algorithm == "UCS":
         print("Running UCS")
@@ -152,10 +190,27 @@ if __name__ == "__main__":
                     outputList.reverse()
                     output = output + " ".join("%s,%s" %tup for tup in outputList) + "\n"
             else:
-                output = "FAIL"
+                output += "FAIL\n"
     elif algorithm == "A*":
         print("Running A*")
+        for lodge in lodges:
+            goal = createNode(lodge[0], lodge[1])
+            visited = AStar(startNode, goal)
+            outputList = list()
 
-    print(str(output))
+            if visited:
+                if goal in visited:
+                    node = goal
+                    
+                    while node != startNode:
+                        outputList.append(node)
+                        node = visited[node][1]
+                    outputList.append(startNode)
+                    outputList.reverse()
+                    output = output + " ".join("%s,%s" %tup for tup in outputList) + "\n"
+            else:
+                output += "FAIL\n"
+
+    print(output)
     file = open('output.txt','w')
     file.write(output)
