@@ -114,6 +114,7 @@ def AStar(start, goal):
 
                 ecc = max(0, elevation[neighbourNode[1]][neighbourNode[0]] - elevation[currentNode[1]][currentNode[0]] - momentum)
                 neighbourCost = cost + pathCosts[neighbours.index(neighbour)] + heuristic(neighbourNode, goal) + ecc
+
                 if neighbourNode not in visited or visited[neighbourNode][0] > neighbourCost:
                     heapq.heappush(priorityQueue, (neighbourCost, neighbourNode, currentNode, heuristic(neighbourNode, goal)))
 
@@ -122,7 +123,7 @@ def AStar(start, goal):
 
 if __name__ == "__main__":
     # Read the input file
-    file = open('testcases/inputa10.txt', 'r')
+    file = open('testcases/inputa9.txt', 'r')
     Lines = file.readlines()
 
     # Store the data in variables
@@ -161,14 +162,15 @@ if __name__ == "__main__":
             if visited:
                 if goal in visited:
                     node = goal
+
                     while node != startNode:
                         outputList.append(node)
                         node = visited[node]
                     
-
                     outputList.append(startNode)
                     outputList.reverse()
                     output += " ".join("%s,%s" %tup for tup in outputList) + "\n"
+                    print(output)
             else:
                 output += "FAIL\n"
 
@@ -186,11 +188,14 @@ if __name__ == "__main__":
                     while node != startNode:
                         outputList.append(node)
                         node = visited[node][1]
+
                     outputList.append(startNode)
                     outputList.reverse()
-                    output = output + " ".join("%s,%s" %tup for tup in outputList) + "\n"
+                    output += " ".join("%s,%s" %tup for tup in outputList) + "\n"
+                    print(output)
             else:
                 output += "FAIL\n"
+                
     elif algorithm == "A*":
         print("Running A*")
         for lodge in lodges:
@@ -201,16 +206,19 @@ if __name__ == "__main__":
             if visited:
                 if goal in visited:
                     node = goal
+                    print(visited[goal][0])
                     
                     while node != startNode:
                         outputList.append(node)
                         node = visited[node][1]
+
                     outputList.append(startNode)
                     outputList.reverse()
-                    output = output + " ".join("%s,%s" %tup for tup in outputList) + "\n"
+                    output += " ".join("%s,%s" %tup for tup in outputList) + "\n"
+                    print(output)
             else:
                 output += "FAIL\n"
 
-    print(output)
+    # print(output)
     file = open('output.txt','w')
     file.write(output)
