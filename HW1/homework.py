@@ -88,42 +88,65 @@ def heuristic(node, goal):
 
 # Function for A*
 def AStar(start, goal):
-    priorityQueue = list() # 2D array => [cost, node, parent, parentHCost]
-    visited = dict() # Dictionary => [node : (cost, parent)]
+    priorityQueue = list() # 2D array => [cost, node, parent, parentHCost, momentum]
+    visited = dict() # Dictionary => [node : (cost, parent, momentum)]
 
-    heapq.heappush(priorityQueue, (0, start, None, 0))
+    heapq.heappush(priorityQueue, (0, start, None, 0, 0))
 
     while(priorityQueue):
-        cost, currentNode, parent, parentHCost = heapq.heappop(priorityQueue)
+        cost, currentNode, parent, parentHCost, momentum = heapq.heappop(priorityQueue)
         cost = cost - parentHCost
 
-        if currentNode in visited and visited[currentNode][0] < cost:
+        if currentNode in visited and visited[currentNode][0] < cost and visited[currentNode][2] >= momentum:
             continue
 
-        visited[currentNode] = (cost, parent) 
+        visited[currentNode] = (cost, parent, momentum) 
         if currentNode == goal:
             return visited
 
         for neighbour in neighbours:
             neighbourNode = createNode(currentNode[0] + neighbour[0], currentNode[1] + neighbour[1])
-            momentum = 0
+            newMomentum = 0
                 
-            if isMoveValid(currentNode, neighbourNode, momentum):
+            if isMoveValid(currentNode, neighbourNode, newMomentum):
                 if abs(elevation[neighbourNode[1]][neighbourNode[0]]) - abs(elevation[currentNode[1]][currentNode[0]]) > 0 and parent is not None:
-                    momentum = max(0, elevation[parent[1]][parent[0]] - elevation[currentNode[1]][currentNode[0]])
+                    newMomentum = max(0, elevation[parent[1]][parent[0]] - elevation[currentNode[1]][currentNode[0]])
 
-                ecc = max(0, elevation[neighbourNode[1]][neighbourNode[0]] - elevation[currentNode[1]][currentNode[0]] - momentum)
+                ecc = max(0, elevation[neighbourNode[1]][neighbourNode[0]] - elevation[currentNode[1]][currentNode[0]] - newMomentum)
                 neighbourCost = cost + pathCosts[neighbours.index(neighbour)] + heuristic(neighbourNode, goal) + ecc
 
-                if neighbourNode not in visited or visited[neighbourNode][0] > neighbourCost:
-                    heapq.heappush(priorityQueue, (neighbourCost, neighbourNode, currentNode, heuristic(neighbourNode, goal)))
+                inPQ = False
+                nodeIndex = -1
+                for node in priorityQueue:
+                    if node[1] == neighbourNode:
+                        inPQ = True
+                        nodeIndex = priorityQueue.index(node)
+                        break
+
+                if neighbourNode not in visited and not inPQ:
+                    heapq.heappush(priorityQueue, (neighbourCost, neighbourNode, currentNode, heuristic(neighbourNode, goal), newMomentum))
+                elif inPQ:
+                    if priorityQueue[nodeIndex][0] > neighbourCost:
+                        priorityQueue.remove((neighbourCost, neighbourNode, currentNode, heuristic(neighbourNode, goal), newMomentum))
+                        heapq.heappush(priorityQueue, (neighbourCost, neighbourNode, currentNode, heuristic(neighbourNode, goal), newMomentum))
+                    elif priorityQueue[nodeIndex][4] < newMomentum:
+                        heapq.heappush(priorityQueue, (neighbourCost, neighbourNode, currentNode, heuristic(neighbourNode, goal), newMomentum))
+                elif neighbourNode in visited:
+                    if visited[neighbourNode][0] > neighbourCost:
+                        visited[neighbourNode] = (neighbourCost, currentNode, newMomentum)
+                        heapq.heappush(priorityQueue, (neighbourCost, neighbourNode, currentNode, heuristic(neighbourNode, goal), newMomentum))
+                    elif visited[neighbourNode][2] < newMomentum:
+                        heapq.heappush(priorityQueue, (neighbourCost, neighbourNode, currentNode, heuristic(neighbourNode, goal), newMomentum))
+
+                # if neighbourNode not in visited or visited[neighbourNode][0] > neighbourCost or visited[neighbourNode][2] < newMomentum:
+                #     heapq.heappush(priorityQueue, (neighbourCost, neighbourNode, currentNode, heuristic(neighbourNode, goal), newMomentum))
 
     # If queue is empty
     return False
 
 if __name__ == "__main__":
     # Read the input file
-    file = open('testcases/inputa9.txt', 'r')
+    file = open('input5.txt', 'r')
     Lines = file.readlines()
 
     # Store the data in variables
