@@ -1,12 +1,14 @@
+import math
+
 # Check if the move is valid
-def isValidMove(move):
+def isValidMove(board, move):
     if (move[0] >= 0 or move[0] < 19 or move[1] >= 0 or move[1] < 19) and board[move[0]][move[1]] == '.':
         return True
     else:
         return False
 
 # Check if there are two consecutive stones of the same colour
-def isTwoConsecutive(move, stone):
+def isTwoConsecutive(board, move, stone):
     if stone == 'b':
         opStone = 'w'
     else:
@@ -63,7 +65,8 @@ def isTwoConsecutive(move, stone):
         return True    
 
 # Check winner
-def checkWinner(board):
+# TODO: Check if I need to return the winner
+def gameOver(board):
     # Check if there are 10 or more captures
     if captures[0] >= 10 or captures[1] >= 10:
         return True
@@ -93,9 +96,55 @@ def checkWinner(board):
     else:
         return False
     
-# Alpha Beta Pruning
-def alphaBeta():
+# Get possible moves
+# TODO: For white's turns, first => in the middle, second => random move leaving 3 intersections
+def getPossibleMoves(board):
+    possibleMoves = []
+    for i in range(19):
+        for j in range(19):
+            if isValidMove(board, [i, j]):
+                possibleMoves.append([i, j])
+    return possibleMoves
+
+# Evaluate board
+def evaluateBoard(board):
     pass
+
+# Alpha-Beta Pruning
+def alphaBetaPruning(board, depth, alpha, beta, maximizingPlayer):
+    if depth == 0 or gameOver(board):
+        return evaluateBoard(board), move
+    
+    if maximizingPlayer:
+        maxValue = -math.inf
+        bestMove = None
+        for move in getPossibleMoves(board):
+            board[move[0]][move[1]] = myStone 
+            # TODO: What if here is a capture?
+            value, _ = alphaBetaPruning(board, depth - 1, alpha, beta, False)
+            board[move[0]][move[1]] = '.'
+            maxValue = max(maxValue, value)
+            alpha = max(alpha, value)
+            if beta <= alpha:
+                break
+            if value > maxValue:
+                bestMove = move
+        return maxValue, bestMove
+    
+    else:
+        minValue = math.inf
+        bestMove = None
+        for move in getPossibleMoves(board):
+            board[move[0]][move[1]] = opponentStone
+            value, _ = alphaBetaPruning(board, depth - 1, alpha, beta, True)
+            board[move[0]][move[1]] = '.'
+            minValue = min(minValue, value)
+            beta = min(beta, value)
+            if beta <= alpha:
+                break
+            if value < minValue:
+                bestMove = move
+        return minValue, bestMove
 
 if __name__ == "__main__":
     # Read input file
