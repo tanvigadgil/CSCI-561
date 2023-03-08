@@ -9,77 +9,100 @@ def isValidMove(board, move):
         return False
 
 # Check if there are two consecutive stones of the same colour
-# TODO: Do this to check the number of captures
-# TODO: Preventing captures
+# TODO: Do this to check the number of captures DONE
 # TODO: Check all directions and then return DONE
-def isTwoConsecutive(board, move, stone):
-    captureCount = 0
-    if stone == 'b':
+def checkCaptures(board, move, myStone):
+    captured = 0
+    stonesCapturedAt = []
+
+    if myStone == 'b':
         opStone = 'w'
     else:
         opStone = 'b'
-    # Check for horizontal
+
     # Check if opponent's stones are captured
-    # TODO: Can I skip if my stones are getting captured? Also can I udpated the scores like this? 
+    # TODO: Can I skip if my stones are getting captured? Also can I udpate the scores like this? 
     # ANS: Count the number of bCaptures and wCaptures and send the updated ones to evalutate function?
-    # This checks if my stones are captured
+
+    # Check for horizontal
+    # I Captured
     if (move[1] > 2 and 
-        board[move[0]][move[1]-1] == stone and
-        board[move[0]][move[1]-2] == stone and
-        board[move[0]][move[1]-3] == opStone):
-        captureCount += 1
+        board[move[0]][move[1]-1] == opStone and
+        board[move[0]][move[1]-2] == opStone and
+        board[move[0]][move[1]-3] == myStone):
+        captured += 2
+        stonesCapturedAt.append([move[0], move[1]-1])
+        stonesCapturedAt.append([move[0], move[1]-2])
 
     if (move[1] < 16 and
-        board[move[0]][move[1]+1] == stone and
-        board[move[0]][move[1]+2] == stone and
-        board[move[0]][move[1]+3] == opStone):
-        captureCount += 1
+        board[move[0]][move[1]+1] == opStone and
+        board[move[0]][move[1]+2] == opStone and
+        board[move[0]][move[1]+3] == myStone):
+        captured += 2
+        stonesCapturedAt.append([move[0], move[1]+1])
+        stonesCapturedAt.append([move[0], move[1]+2])
+
     # Check for vertical
+    # I Captured
     if (move[0] > 2 and
-        board[move[0]-1][move[1]] == stone and
-        board[move[0]-2][move[1]] == stone and
-        board[move[0]-3][move[1]] == opStone):
-        captureCount += 1
+        board[move[0]-1][move[1]] == opStone and
+        board[move[0]-2][move[1]] == opStone and
+        board[move[0]-3][move[1]] == myStone):
+        captured += 2
+        stonesCapturedAt.append([move[0]-1, move[1]])
+        stonesCapturedAt.append([move[0]-2, move[1]])
     
     if (move[0] < 16 and
-        board[move[0]+1][move[1]] == stone and
-        board[move[0]+2][move[1]] == stone and
-        board[move[0]+3][move[1]] == opStone):
-        captureCount += 1
+        board[move[0]+1][move[1]] == opStone and
+        board[move[0]+2][move[1]] == opStone and
+        board[move[0]+3][move[1]] == myStone):
+        captured += 2
+        stonesCapturedAt.append([move[0]+1, move[1]])
+        stonesCapturedAt.append([move[0]+2, move[1]])
     
     # Check for diagonal \
+    # I Captured
     if (move[0] > 2 and move[1] > 2 and
-        board[move[0]-1][move[1]-1] == stone and
-        board[move[0]-2][move[1]-2] == stone and
-        board[move[0]-3][move[1]-3] == opStone):
-        captureCount += 1
+        board[move[0]-1][move[1]-1] == opStone and
+        board[move[0]-2][move[1]-2] == opStone and
+        board[move[0]-3][move[1]-3] == myStone):
+        captured += 2
+        stonesCapturedAt.append([move[0]-1, move[1]-1])
+        stonesCapturedAt.append([move[0]-2, move[1]-2])
     
     if (move[0] < 16 and move[1] < 16 and
-        board[move[0]+1][move[1]+1] == stone and
-        board[move[0]+2][move[1]+2] == stone and
-        board[move[0]+3][move[1]+3] == opStone):
-        captureCount += 1
+        board[move[0]+1][move[1]+1] == opStone and
+        board[move[0]+2][move[1]+2] == opStone and
+        board[move[0]+3][move[1]+3] == myStone):
+        captured += 2
+        stonesCapturedAt.append([move[0]+1, move[1]+1])
+        stonesCapturedAt.append([move[0]+2, move[1]+2])
     
     # Check for diagonal /
+    # I Captured
     if (move[0] > 2 and move[1] < 16 and
-        board[move[0]-1][move[1]+1] == stone and
-        board[move[0]-2][move[1]+2] == stone and
-        board[move[0]-3][move[1]+3] == opStone):
-        captureCount += 1
+        board[move[0]-1][move[1]+1] == opStone and
+        board[move[0]-2][move[1]+2] == opStone and
+        board[move[0]-3][move[1]+3] == myStone):
+        captured += 2
+        stonesCapturedAt.append([move[0]-1, move[1]+1])
+        stonesCapturedAt.append([move[0]-2, move[1]+2])
     
     if (move[0] < 16 and move[1] > 2 and
-        board[move[0]+1][move[1]-1] == stone and
-        board[move[0]+2][move[1]-2] == stone and
-        board[move[0]+3][move[1]-3] == opStone):
-        captureCount += 1
+        board[move[0]+1][move[1]-1] == opStone and
+        board[move[0]+2][move[1]-2] == opStone and
+        board[move[0]+3][move[1]-3] == myStone):
+        captured += 2
+        stonesCapturedAt.append([move[0]+1, move[1]-1])
+        stonesCapturedAt.append([move[0]+2, move[1]-2])
 
-    if captureCount > 0:
-        return True
+    if captured > 0:
+        return True, captured, stonesCapturedAt
     else:
-        return False  
+        return False, captured, stonesCapturedAt 
 
 # Check winner
-# TODO: Check if I need to return the winner
+# TODO: Check if I need to return the winner Nope DONE
 def gameOver(board):
     # Check if there are 10 or more captures
     if captures[0] >= 10 or captures[1] >= 10:
@@ -114,11 +137,11 @@ def gameOver(board):
 # TODO: For white's turns, first => in the middle, second => random move leaving 3 intersections DONE
 def getPossibleMoves(board):
     wCount = sum(x.count('w') for x in board)
-    bCount = sum(board.count('b') for x in board)
+    bCount = sum(x.count('b') for x in board)
     possibleMoves = []
     print(wCount, bCount)
 
-    if wCount == 0:
+    if wCount == 0 and bCount == 0:
         possibleMoves.append([9, 9])
         return possibleMoves
     
@@ -147,104 +170,193 @@ def getPossibleMoves(board):
     return possibleMoves
 
 # Evaluate board
-def evaluateBoard(board, wCapture, bCapture, stone, move):
-    count = 1
+# TODO: Add scores for capturing stones DONE
+# TODO: Add score for game over DONE
+def evaluateBoard(board, myCaptures, opCaptures, stone, move):
+    if stone == 'w':
+        opStone = 'b'
+    else:
+        opStone = 'w'
+
+    myCount = 1
+    hCount = 0
+    vCount = 0
+    d1Count = 0
+    d2Count = 0
+    opCount = 0
     row = move[0]
     col = move[1]
-    diff = 0
+    diff = myCaptures - opCaptures
 
-    if stone == 'w':
-        diff = bCapture - wCapture
-    else:
-        diff = wCapture - bCapture
+    # Check if game over
+    if gameOver(board):
+        return 1000000
 
     # Check horizontal
+    # Check for my stones
     i = col - 1
     while i >= 0 and board[row][i] == stone:
-        count += 1
+        hCount += 1
         i -= 1
     i = col + 1
     while i < len(board[row]) and board[row][i] == stone:
-        count += 1
+        hCount += 1
+        i += 1
+
+    # Check for opponent's stones
+    i = col - 1
+    while i >= 0 and board[row][i] == opStone:
+        opCount += 1
+        i -= 1
+    i = col + 1
+    while i < len(board[row]) and board[row][i] == opStone:
+        opCount += 1
         i += 1
 
     # Check vertical
+    # Check for my stones
     j = row - 1
     while j >= 0 and board[j][col] == stone:
-        count += 1
+        vCount += 1
         j -= 1
     j = row + 1
     while j < len(board) and board[j][col] == stone:
-        count += 1
+        vCount += 1
+        j += 1
+
+    # Check for opponent's stones
+    j = row - 1
+    while j >= 0 and board[j][col] == opStone:
+        opCount += 1
+        j -= 1
+    j = row + 1
+    while j < len(board) and board[j][col] == opStone:
+        opCount += 1
         j += 1
 
     # Check diagonal \
+    # Check for my stones
     i, j = col - 1, row - 1
     while i >= 0 and j >= 0 and board[j][i] == stone:
-        count += 1
+        d1Count += 1
         i -= 1
         j -= 1
     i, j = col + 1, row + 1
     while i < len(board[row]) and j < len(board) and board[j][i] == stone:
-        count += 1
+        d1Count += 1
+        i += 1
+        j += 1
+
+    # Check for opponent's stones
+    i, j = col - 1, row - 1
+    while i >= 0 and j >= 0 and board[j][i] == opStone:
+        opCount += 1
+        i -= 1
+        j -= 1
+    i, j = col + 1, row + 1
+    while i < len(board[row]) and j < len(board) and board[j][i] == opStone:
+        opCount += 1
         i += 1
         j += 1
 
     # Check diagonal /
+    # Check for my stones
     i, j = col + 1, row - 1
     while i < len(board[row]) and j >= 0 and board[j][i] == stone:
-        count += 1
+        d2Count += 1
         i += 1
         j -= 1
     i, j = col - 1, row + 1
     while i >= 0 and j < len(board) and board[j][i] == stone:
-        count += 1
+        d2Count += 1
         i -= 1
         j += 1
 
-    return ((100 * count / 5) + diff)
+    # Check for opponent's stones
+    i, j = col + 1, row - 1
+    while i < len(board[row]) and j >= 0 and board[j][i] == opStone:
+        opCount += 1
+        i += 1
+        j -= 1
+    i, j = col - 1, row + 1
+    while i >= 0 and j < len(board) and board[j][i] == opStone:
+        opCount += 1
+        i -= 1
+        j += 1
+
+    if (hCount + vCount + d1Count + d2Count) >= 4:
+        myCount += hCount + vCount + d1Count + d2Count
+    else:
+        myCount += max(hCount, vCount, d1Count, d2Count)
+
+    return ((200 * myCount / 5) + (100 * opCount / 5) + 1000 * diff)
 
 
 # Alpha-Beta Pruning
-def alphaBetaPruning(board, depth, alpha, beta, myStone, opponentStone, maximizingPlayer, prevMove):
+def alphaBetaPruning(board, depth, alpha, beta, maximizingPlayer, prevMove, myCaptures, opCaptures):
     if depth == 0 or gameOver(board):
         print(prevMove)
-        return evaluateBoard(board, captures[0], captures[1], myStone, prevMove),prevMove
+        return evaluateBoard(board, myCaptures, opCaptures, myStone, prevMove), prevMove
     
     if maximizingPlayer:
         maxValue = -math.inf
         bestMove = None
+
         for move in getPossibleMoves(board):
             board[move[0]][move[1]] = myStone 
-            # TODO: What if here is a capture?
-            value, _ = alphaBetaPruning(board, depth - 1, alpha, beta, opponentStone, myStone, False, move)
+            # TODO: What if there is a capture here?
+            isCaptured, iCaptured, stonesCapturedAt = checkCaptures(board, move, myStone)
+            if isCaptured:
+                capturedStone = board[stonesCapturedAt[0][0]][stonesCapturedAt[0][1]]
+                for place in stonesCapturedAt:
+                    board[place[0]][place[1]] = '.'
+            value, _ = alphaBetaPruning(board, depth - 1, alpha, beta, False, move, myCaptures + iCaptured, opCaptures)
+
             board[move[0]][move[1]] = '.'
+            if isCaptured:
+                for place in stonesCapturedAt:
+                    board[place[0]][place[1]] = capturedStone
             maxValue = max(maxValue, value)
             alpha = max(alpha, value)
-            if beta <= alpha:
-                break
             if value >= maxValue:
                 bestMove = move
+            if beta <= alpha:
+                break
+
+        print("Move: ", move, "Max Value:", maxValue, "best Move:", bestMove)
         return maxValue, bestMove
     
     else:
         minValue = math.inf
         bestMove = None
+
         for move in getPossibleMoves(board):
             board[move[0]][move[1]] = opponentStone
-            value, _ = alphaBetaPruning(board, depth - 1, alpha, beta, opponentStone, myStone, True, move)
+            # TODO: What if there is a capture here?
+            isCaptured, iCaptured, stonesCapturedAt = checkCaptures(board, move, opponentStone)
+            if isCaptured:
+                capturedStone = board[stonesCapturedAt[0][0]][stonesCapturedAt[0][1]]
+                for place in stonesCapturedAt:
+                    board[place[0]][place[1]] = '.'
+            value, _ = alphaBetaPruning(board, depth - 1, alpha, beta, True, move, myCaptures, opCaptures + iCaptured)
+            
             board[move[0]][move[1]] = '.'
+            if isCaptured:
+                for place in stonesCapturedAt:
+                    board[place[0]][place[1]] = capturedStone
             minValue = min(minValue, value)
             beta = min(beta, value)
-            if beta <= alpha:
-                break
             if value <= minValue:
                 bestMove = move
+            if beta <= alpha:
+                break
+            
+        print("Move: ", move, "Min Value:", minValue, "best Move:", bestMove)
         return minValue, bestMove
 
 if __name__ == "__main__":
     # Read input file
-    file = open('input.txt', 'r')
+    file = open('input1.txt', 'r')
     Lines = file.readlines()
 
     # Store the data in variables
@@ -270,19 +382,25 @@ if __name__ == "__main__":
     if myColour == 'BLACK':
         myStone = 'b'
         opponentStone = 'w'
-    else:
+        myCaptures = captures[1]
+        opCaptures = captures[0]
+    elif myColour == 'WHITE':
         myStone = 'w'
         opponentStone = 'b'
+        myCaptures = captures[0]
+        opCaptures = captures[1]
 
     # TODO: Caliberate depth
-    score, move = alphaBetaPruning(board, 1, -math.inf, math.inf, myStone, opponentStone, True, None)
+    score, move = alphaBetaPruning(board, 2, -math.inf, math.inf, True, None, myCaptures, opCaptures)
     print(score, move)
+
     row = 19 - move[0]
     if move[1] < 8:
         col = chr(ord('A') + move[1])
     else:
         col = chr(ord('A') + move[1] + 1)
     output = str(row) + col
+    print(output)
 
     # TODO: Write to output file with the move in proper format DONE
     file = open('output.txt', 'w')
