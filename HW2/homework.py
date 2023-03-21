@@ -3,7 +3,7 @@ import random
 
 # Check if the move is valid
 def isValidMove(board, move):
-    if (move[0] >= 0 or move[0] < 19 or move[1] >= 0 or move[1] < 19) and board[move[0]][move[1]] == '.':
+    if (move[0] >= 0 and move[0] < 19 and move[1] >= 0 and move[1] < 19) and board[move[0]][move[1]] == '.':
         return True
     else:
         return False
@@ -139,7 +139,6 @@ def getPossibleMoves(board):
     wCount = sum(x.count('w') for x in board)
     bCount = sum(x.count('b') for x in board)
     possibleMoves = []
-    print(wCount, bCount)
 
     if wCount == 0 and bCount == 0:
         possibleMoves.append([9, 9])
@@ -295,8 +294,11 @@ def evaluateBoard(board, myCaptures, opCaptures, stone, move):
 # Alpha-Beta Pruning
 def alphaBetaPruning(board, depth, alpha, beta, maximizingPlayer, prevMove, myCaptures, opCaptures):
     if depth == 0 or gameOver(board):
-        print(prevMove)
-        return evaluateBoard(board, myCaptures, opCaptures, myStone, prevMove), prevMove
+        if maximizingPlayer:
+            player = opponentStone
+        else:
+            player = myStone
+        return evaluateBoard(board, myCaptures, opCaptures, player, prevMove), prevMove
     
     if maximizingPlayer:
         maxValue = -math.inf
@@ -322,8 +324,8 @@ def alphaBetaPruning(board, depth, alpha, beta, maximizingPlayer, prevMove, myCa
                 bestMove = move
             if beta <= alpha:
                 break
-
-        print("Move: ", move, "Max Value:", maxValue, "best Move:", bestMove)
+        # print("Maximizing Player")
+        # print("Move: ", move, "Max Value:", maxValue, "best Move:", bestMove)
         return maxValue, bestMove
     
     else:
@@ -350,8 +352,8 @@ def alphaBetaPruning(board, depth, alpha, beta, maximizingPlayer, prevMove, myCa
                 bestMove = move
             if beta <= alpha:
                 break
-            
-        print("Move: ", move, "Min Value:", minValue, "best Move:", bestMove)
+        # print("Minimizing Player")  
+        # print("Move: ", move, "Min Value:", minValue, "best Move:", bestMove)
         return minValue, bestMove
 
 if __name__ == "__main__":
@@ -364,19 +366,19 @@ if __name__ == "__main__":
 
     # Get which colour I play
     myColour = input[0]
-    print(myColour)
+    # print(myColour)
 
     timeRemaining = float(input[1])
-    print(timeRemaining)
+    # print(timeRemaining)
 
     # Captures [White, Black]
     stringOfCaptures = input[2].split(',')
     captures = [int(i) for i in stringOfCaptures]
-    print(captures)
+    # print(captures)
 
     # Board
     board = [[i for i in col] for col in input[3: 22]]
-    print(board)
+    # print(board)
 
     # Stone
     if myColour == 'BLACK':
@@ -391,8 +393,8 @@ if __name__ == "__main__":
         opCaptures = captures[1]
 
     # TODO: Caliberate depth
-    score, move = alphaBetaPruning(board, 2, -math.inf, math.inf, True, None, myCaptures, opCaptures)
-    print(score, move)
+    score, move = alphaBetaPruning(board, 1, -math.inf, math.inf, True, None, myCaptures, opCaptures)
+    # print(score, move)
 
     row = 19 - move[0]
     if move[1] < 8:
@@ -400,7 +402,7 @@ if __name__ == "__main__":
     else:
         col = chr(ord('A') + move[1] + 1)
     output = str(row) + col
-    print(output)
+    # print(output)
 
     # TODO: Write to output file with the move in proper format DONE
     file = open('output.txt', 'w')
