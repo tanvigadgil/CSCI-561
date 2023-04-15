@@ -1,3 +1,0 @@
-Order(Jenny,Pizza)
-1
-Order(x) => Seated(x)

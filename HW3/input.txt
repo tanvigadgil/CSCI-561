@@ -1,7 +1,7 @@
 Order(Jenny,Pizza)
-8
-Order(x) => Seated(x)
-Order(x) => Stocked(x)
+9
+Order(x,y) => Seated(x)
+Order(x,y) => Stocked(y)
 Ate(x) => GetCheck(x)
 GetCheck(x) & Paid(x) => Leave(x)
 Seated(x) => Open(Restaurant)
