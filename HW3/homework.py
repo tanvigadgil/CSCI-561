@@ -32,6 +32,14 @@ class Predicate:
         self.negationFlag = negationFlag
         self.args = args
 
+    # Overloading the print function
+    def __str__(self):
+        negation = ""
+        if self.negationFlag:
+            negation = "~"
+        arguments = ','.join(self.args)
+        return negation + self.name + "(" + arguments + ")"
+
     def negate(self):
         self.negationFlag = not self.negationFlag
 
@@ -70,6 +78,23 @@ class Sentence:
     def __init__(self, predicates):
         self.predicates = predicates
 
+    # Overloading the print function
+    def __str__(self):
+        predicateString = list()
+        for predicate in self.predicates:
+            predicateString.append(str(predicate))
+        sentence = ','.join(predicateString)
+        return "[" + sentence + "]"
+
+    # Print each sentence in the list
+    def printSentences(sentences):
+        for sentence in sentences:
+            print(sentence)
+
+    def negateSentence(self):
+        for predicate in self.predicates:
+            predicate.negate()
+
     # Make a sentence from a string
     def makeSentence(sentenceString):
         predicates = list()
@@ -94,18 +119,19 @@ class Sentence:
         Sentence.variableMap.clear()
         return Sentence(predicates)
 
-    # Print each sentence in the list
-    def printSentences(sentences):
-        for sentence in sentences:
-            print(sentence)
-
-
+    def getPossibleClauses(self):
+        pass
     
 class FOLResolution:
     def __init__(self):
         self.nOfKB = 0
         self.KB = list()
         self.Query = list()
+
+    # Print each sentence in the list
+    def printSentences(sentences):
+        for sentence in sentences:
+            print(sentence)
 
     # Read input file and process it
     def processInput(self, inputFile):
@@ -116,7 +142,7 @@ class FOLResolution:
         query = Lines[0].strip().replace(" ", "")
         self.Query.append(Sentence.makeSentence(query))
         print("Query: ")
-        Sentence.printSentences(self.Query)
+        FOLResolution.printSentences(self.Query)
 
         # Number of sentences given in the KB
         self.nOfKB = int(Lines[1])
@@ -127,12 +153,12 @@ class FOLResolution:
             sentence = Lines[i].strip().replace(" ", "")
             self.KB.append(Sentence.makeSentence(sentence))
         print("KB: ")
-        Sentence.printSentences(self.KB)
+        FOLResolution.printSentences(self.KB)
 
     def writeOutput(self):
         outputFile = open("output.txt", "w")
         KBToAsk = copy.copy(self.KB)
-        result = self.ask(KBToAsk, self.Query)
+        result = self.ask(KBToAsk, self.Query[0])
         print(result)
 
         if result:
@@ -140,8 +166,37 @@ class FOLResolution:
         else:
             outputFile.write("FALSE")
 
-    def ask(self, KB, query):
-        pass
+    def ask(self, kb, query):
+        queryAsked = copy.copy(query)
+        print("Query asked: ")
+        print(queryAsked)
+        queryAsked.negateSentence()
+        kb.append(queryAsked)
+        kb.sort(key = lambda x: len(x.predicates))
+
+        while True:
+            newKB = list()
+            for sentence in kb:
+                clauses = sentence.getPossibleClauses()
+                for clause in clauses:
+                    resolvents = sentence.resolve(clause)
+                    for resolvent in resolvents:
+                        if len(resolvent.predicates) == 1 and resolvent.predicates[0].name == "TRUE":
+                            return True
+                    
+                    newKB += resolvents
+            kbWithRemovedDuplicates = self.removeDuplicates(newKB)
+            if len(kbWithRemovedDuplicates) == 0:
+                break
+            differenceBtwKB = self.difference(kb, kbWithRemovedDuplicates)
+
+            if len(kbWithRemovedDuplicates) == 0:
+                break
+
+            kb = kbWithRemovedDuplicates
+            kb.sort(key = lambda x: len(x.predicates))
+
+        return False
 
 
 def main():
