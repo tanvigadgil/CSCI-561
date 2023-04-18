@@ -463,7 +463,7 @@ class FOLResolution:
 
 def main():
     fol = FOLResolution()
-    fol.processInput('input.txt')
+    fol.processInput('testcases/test_case_10/input.txt')
     fol.writeOutput()
 
 if __name__ == "__main__":

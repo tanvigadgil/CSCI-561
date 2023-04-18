@@ -1,5 +1,0 @@
-A(Ficus,Iris)
-3
-~B(z,z,y) | ~C(w,w,x) | A(y,x)
-C(One,Two,Iris)
-B(One,Two,Ficus)
