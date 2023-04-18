@@ -1,30 +1,5 @@
 import copy
-
-# def createClauses(sentence):
-#     args = []
-    
-
-# def convertToCNF(sentence):
-#     implicationIndex = sentence.find("=>")
-
-#     if implicationIndex == -1:
-#         pass
-#     else:
-#         premise = sentence[:implicationIndex]
-#         conclusion = sentence[implicationIndex + 2:]
-#         # TODO: Do I need to strip the spaces from the predicate and conclusion?
-
-#         andIndex = premise.find("&")
-
-#         while(andIndex != -1):
-#             pass
-#         # TODO: Negation operations on predicate
-        
-#         fact = premise + '|' + conclusion
-
-#         print(fact)
-#         return fact
-
+import time
 
 class Predicate:
     # Format: [Name, True, [arg1, arg2, ...]]
@@ -42,18 +17,18 @@ class Predicate:
         return negation + self.name + "(" + arguments + ")"
 
     # Overloading the equal function
-    def __eq__(self, other):
-        if self.negationFlag != other.negationFlag:
+    def __eq__(self, predicate2):
+        if self.negationFlag != predicate2.negationFlag:
             return False
         
-        if self.name != other.name:
+        if self.name != predicate2.name:
             return False
         
-        if len(self.args) != len(other.args):
+        if len(self.args) != len(predicate2.args):
             return False
         
         for i in range(len(self.args)):
-            if (not Predicate.isVariable(self.args[i])) and (not Predicate.isVariable(other.args[i])) and self.args[i] != other.args[i]:
+            if (not Predicate.isVariable(self.args[i])) and (not Predicate.isVariable(predicate2.args[i])) and self.args[i] != predicate2.args[i]:
                 return False
         return True
 
@@ -75,7 +50,11 @@ class Predicate:
             negationFlag = True
             predicateString = predicateString[1:]
         
+        print("Predicate String: " + predicateString)
         splitString = predicateString.split("(")
+        print("Split String: ")
+        print(splitString)
+
         name = splitString[0]
         args = splitString[1].split(",")
 
@@ -140,6 +119,19 @@ class Predicate:
 
         return unificationMap
 
+    # Check if two predicates are the same
+    def isSame(self, predicate2):
+        if self.name != predicate2.name:
+            return False
+        if len(self.args) != len(predicate2.args):
+            return False
+        
+        for i in range(len(self.args)):
+            if self.args[i] != predicate2.args[i]:
+                return False
+        return True
+
+
 class Sentence:
     variableMap = dict()
     variableCounter = 0
@@ -174,9 +166,9 @@ class Sentence:
             premise = splitSpring[0].split("&")
 
             for each in premise:
-                p = Predicate.createPredicate(each)
-                p.negate()
-                predicates.append(p)
+                predicate = Predicate.createPredicate(each)
+                predicate.negate()
+                predicates.append(predicate)
             conclusion = Predicate.createPredicate(splitSpring[1])
             predicates.append(conclusion)
 
@@ -203,18 +195,59 @@ class Sentence:
 
     # Get all the possible substitutions
     def getPossibleSubstitutions(self, clause):
-        substitutes = list()
+        substitutions = list()
         for predicate in self.predicates:
             for clausePredicate in clause.predicates:
                 if predicate.name == clausePredicate.name:
                     unificationMap = Predicate.unify(predicate, clausePredicate)
-                    if len(unificationMap) != 0:
-                        substitutes.append(unificationMap)
-        return substitutes
+                    if len(unificationMap):
+                        substitutions.append(unificationMap)
+        return substitutions
     
     # Substitute the variables in the sentence
-    def substitute(predicate1, predicate2, substitution):
+    def substitute(clause1, clause2, substitution):
         inference = list()
+        clause1Substitution = list()
+        clause2Substitution = list()
+
+        for predicate in clause1.predicates:
+            args = []
+            for i in range(len(predicate.args)):
+                if predicate.args[i] in substitution and Predicate.isVariable(predicate.args[i]):
+                    args.append(substitution[predicate.args[i]])
+                else:
+                    args.append(predicate.args[i])
+            clause1Substitution.append(Predicate(predicate.name, predicate.negationFlag, args))
+
+        for predicate in clause2.predicates:
+            args = []
+            for i in range(len(predicate.args)):
+                if predicate.args[i] in substitution and Predicate.isVariable(predicate.args[i]):
+                    args.append(substitution[predicate.args[i]])
+                else:
+                    args.append(predicate.args[i])
+            clause2Substitution.append(Predicate(predicate.name, predicate.negationFlag, args))
+
+        for predicates1 in clause1Substitution:
+            isCompliment = False
+            for predicates2 in clause2Substitution:
+                if predicates1.isSame(predicates2) and predicates1.negationFlag != predicates2.negationFlag:
+                    isCompliment = True
+                    break
+            if not isCompliment:
+                inference.append(predicates1)
+        
+        for predicates2 in clause2Substitution:
+            isCompliment = False
+            for predicates1 in clause1Substitution:
+                if predicates2.isSame(predicates1) and predicates2.negationFlag != predicates1.negationFlag:
+                    isCompliment = True
+                    break
+            if not isCompliment:
+                inference.append(predicates2)
+
+        if len(inference) == 0:
+            inference.append(Predicate("TRUE", False, []))
 
         return Sentence(inference)
 
@@ -222,12 +255,12 @@ class Sentence:
     def resolve(self, clause):
         inferences = list()
         substitutions = self.getPossibleSubstitutions(clause)
-        print(substitutions)
+        # print(substitutions)
         for substitution in substitutions:
             substitute = Sentence.substitute(self, clause, substitution)
-            print(substitute)
+            # print(substitute)
             inferences.append(substitute)
-            print(inferences)
+            # print(inferences)
         return inferences
 
 class FOLResolution:
@@ -235,6 +268,7 @@ class FOLResolution:
         self.nOfKB = 0
         self.KB = list()
         self.Query = list()
+        self.startTime = time.time()
 
     # Print each sentence in the list
     def printSentences(sentences):
@@ -243,22 +277,23 @@ class FOLResolution:
 
     # Read input file and process it
     def processInput(self, inputFile):
+        print("-------------------- Processing input file: " + inputFile + " --------------------")
         file = open(inputFile, "r")
-        Lines = file.readlines()
+        lines = file.readlines()
 
         # Query
-        query = Lines[0].strip().replace(" ", "")
+        query = lines[0].strip().replace(" ", "")
         self.Query.append(Sentence.createSentence(query))
         print("Query: ")
         FOLResolution.printSentences(self.Query)
 
         # Number of sentences given in the KB
-        self.nOfKB = int(Lines[1])
+        self.nOfKB = int(lines[1])
         print(self.nOfKB)
 
         # List of sentences in the KB
         for i in range(2, self.nOfKB + 2):
-            sentence = Lines[i].strip().replace(" ", "")
+            sentence = lines[i].strip().replace(" ", "")
             self.KB.append(Sentence.createSentence(sentence))
         print("KB: ")
         FOLResolution.printSentences(self.KB)
@@ -268,6 +303,7 @@ class FOLResolution:
         outputFile = open("output.txt", "w")
         KBToAsk = copy.copy(self.KB)
         result = self.ask(KBToAsk, self.Query[0])
+        print("-------------------- Writing output --------------------")
         print(result)
 
         if result:
@@ -275,20 +311,92 @@ class FOLResolution:
         else:
             outputFile.write("FALSE")
 
+    # Check if the given lists are same
+    def areListsSame(self, predicateList1, predicateList2):
+        match = []
+        isP1Same = False
+
+        for predicate1 in predicateList1:
+            for predicate2 in predicateList2:
+                if time.time() - self.startTime > 10:
+                    break
+                if predicate1 == predicate2:
+                    match.append(predicate1)
+                    break
+            if time.time() - self.startTime > 10:
+                break
+        
+        # print(match)
+        if len(match) == len(predicateList1):
+            isP1Same = True
+        
+        match = []
+        isP2Same = False
+
+        for predicate2 in predicateList2:
+            for predicate1 in predicateList1:
+                if time.time() - self.startTime > 10:
+                    break
+                if predicate2 == predicate1:
+                    match.append(predicate2)
+                    break
+            if time.time() - self.startTime > 10:
+                break
+
+        # print(match)
+        if len(match) == len(predicateList2):
+            isP2Same = True
+        return isP1Same and isP2Same
+
     # Remove duplicates from the list
     def removeDuplicates(self, kb):
         toBeRemoved = list()
+
+        for i in range(len(kb) - 1):
+            predicate1 = kb[i].predicates
+            for j in range(i + 1, len(kb)):
+                if time.time() - self.startTime > 10:
+                    break
+                predicate2 = kb[j].predicates
+                if self.areListsSame(predicate1, predicate2):
+                    toBeRemoved.append(j)
+
+            if time.time() - self.startTime > 10:
+                break
+
         withNoDuplicates = list()
+        for i in range(len(kb)):
+            if i not in toBeRemoved:
+                withNoDuplicates.append(kb[i])
+
         return withNoDuplicates
 
     # Difference between two lists
     def difference(self, kb1, kb2):
         differenceList = list()
 
+        for clauses2 in kb2:
+            predicateList2 = clauses2.predicates
+            isSame = False
+
+            for clauses1 in kb1:
+                if time.time() - self.startTime > 10:
+                    break
+                predicateList1 = clauses1.predicates
+                if self.areListsSame(predicateList1, predicateList2):
+                    isSame = True
+                    break
+
+            if time.time() - self.startTime > 10:
+                break
+            if not isSame: 
+                differenceList.append(clauses2)
+
         return differenceList
 
     # Ask the query
     def ask(self, kb, query):
+        self.startTime = time.time()
         queryAsked = copy.copy(query)
         print("Query asked: ")
         print(queryAsked)
@@ -300,13 +408,20 @@ class FOLResolution:
         FOLResolution.printSentences(kb)
 
         while True:
+            if time.time() - self.startTime > 10:
+                break
+
             newKB = list()
             for fact in kb:
-                print("Fact: ")
-                print(fact)
+                if time.time() - self.startTime > 10:
+                    break
+                # print("Fact: ")
+                # print(fact)
                 clauses = fact.getPossibleClauses(kb)
                 for clause in clauses:
-                    print(fact, clause)
+                    if time.time() - self.startTime > 10:
+                        break
+                    # print(fact, clause)
                     resolvents = fact.resolve(clause)
                     for resolvent in resolvents:
                         if len(resolvent.predicates) == 1 and resolvent.predicates[0].name == "TRUE":
@@ -314,19 +429,34 @@ class FOLResolution:
                     
                     newKB += resolvents
 
+                if time.time() - self.startTime > 10:
+                    break
+
+            if time.time() - self.startTime > 10:
+                break
+
             kbWithRemovedDuplicates = self.removeDuplicates(newKB)
-            FOLResolution.printSentences(kbWithRemovedDuplicates)
+            if time.time() - self.startTime > 10:
+                break
+
+            # print("KB with removed duplicates: ")
+            # FOLResolution.printSentences(kbWithRemovedDuplicates)
             if len(kbWithRemovedDuplicates) == 0:
                 break
 
             differenceBtwKB = self.difference(kb, kbWithRemovedDuplicates)
-            FOLResolution.printSentences(differenceBtwKB)
+            if time.time() - self.startTime > 10:
+                break
+
+            # print("Difference between KB and KB with removed duplicates: ")
+            # FOLResolution.printSentences(differenceBtwKB)
             if len(differenceBtwKB) == 0:
                 break
 
             kb += differenceBtwKB
             kb.sort(key = lambda x: len(x.predicates))
-            FOLResolution.printSentences(kb)
+            # print("Sorted KB: ")
+            # FOLResolution.printSentences(kb)
 
         return False
 
