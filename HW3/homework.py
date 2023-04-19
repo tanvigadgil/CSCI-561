@@ -421,6 +421,9 @@ class FOLResolution:
                 # print("Fact: ")
                 # print(fact)
                 clauses = fact.getPossibleClauses(kb)
+
+                if (fact.predicates[0].name == queryAsked.predicates[0].name) and len(clauses) == 0:
+                    return False
                 for clause in clauses:
                     if time.time() - self.startTime > 25:
                         break
