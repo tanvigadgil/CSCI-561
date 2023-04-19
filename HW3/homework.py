@@ -50,10 +50,10 @@ class Predicate:
             negationFlag = True
             predicateString = predicateString[1:]
         
-        print("Predicate String: " + predicateString)
+        # print("Predicate String: " + predicateString)
         splitString = predicateString.split("(")
-        print("Split String: ")
-        print(splitString)
+        # print("Split String: ")
+        # print(splitString)
 
         name = splitString[0]
         args = splitString[1].split(",")
@@ -72,6 +72,9 @@ class Predicate:
 
     # Check if two predicates can be unified
     def canBeUnified(self, factPredicate):
+        if len(self.args) != len(factPredicate.args):
+            return False
+        
         for i in range(len(self.args)):
             if (not Predicate.isVariable(self.args[i])) and (not Predicate.isVariable(factPredicate.args[i])) and (self.args[i] != factPredicate.args[i]):
                 return False
@@ -318,12 +321,12 @@ class FOLResolution:
 
         for predicate1 in predicateList1:
             for predicate2 in predicateList2:
-                if time.time() - self.startTime > 10:
+                if time.time() - self.startTime > 25:
                     break
                 if predicate1 == predicate2:
                     match.append(predicate1)
                     break
-            if time.time() - self.startTime > 10:
+            if time.time() - self.startTime > 25:
                 break
         
         # print(match)
@@ -335,12 +338,12 @@ class FOLResolution:
 
         for predicate2 in predicateList2:
             for predicate1 in predicateList1:
-                if time.time() - self.startTime > 10:
+                if time.time() - self.startTime > 25:
                     break
                 if predicate2 == predicate1:
                     match.append(predicate2)
                     break
-            if time.time() - self.startTime > 10:
+            if time.time() - self.startTime > 25:
                 break
 
         # print(match)
@@ -355,13 +358,13 @@ class FOLResolution:
         for i in range(len(kb) - 1):
             predicate1 = kb[i].predicates
             for j in range(i + 1, len(kb)):
-                if time.time() - self.startTime > 10:
+                if time.time() - self.startTime > 25:
                     break
                 predicate2 = kb[j].predicates
                 if self.areListsSame(predicate1, predicate2):
                     toBeRemoved.append(j)
 
-            if time.time() - self.startTime > 10:
+            if time.time() - self.startTime > 25:
                 break
 
         withNoDuplicates = list()
@@ -380,14 +383,14 @@ class FOLResolution:
             isSame = False
 
             for clauses1 in kb1:
-                if time.time() - self.startTime > 10:
+                if time.time() - self.startTime > 25:
                     break
                 predicateList1 = clauses1.predicates
                 if self.areListsSame(predicateList1, predicateList2):
                     isSame = True
                     break
 
-            if time.time() - self.startTime > 10:
+            if time.time() - self.startTime > 25:
                 break
             if not isSame: 
                 differenceList.append(clauses2)
@@ -408,18 +411,18 @@ class FOLResolution:
         FOLResolution.printSentences(kb)
 
         while True:
-            if time.time() - self.startTime > 10:
+            if time.time() - self.startTime > 25:
                 break
 
             newKB = list()
             for fact in kb:
-                if time.time() - self.startTime > 10:
+                if time.time() - self.startTime > 25:
                     break
                 # print("Fact: ")
                 # print(fact)
                 clauses = fact.getPossibleClauses(kb)
                 for clause in clauses:
-                    if time.time() - self.startTime > 10:
+                    if time.time() - self.startTime > 25:
                         break
                     # print(fact, clause)
                     resolvents = fact.resolve(clause)
@@ -429,14 +432,14 @@ class FOLResolution:
                     
                     newKB += resolvents
 
-                if time.time() - self.startTime > 10:
+                if time.time() - self.startTime > 25:
                     break
 
-            if time.time() - self.startTime > 10:
+            if time.time() - self.startTime > 25:
                 break
 
             kbWithRemovedDuplicates = self.removeDuplicates(newKB)
-            if time.time() - self.startTime > 10:
+            if time.time() - self.startTime > 25:
                 break
 
             # print("KB with removed duplicates: ")
@@ -445,7 +448,7 @@ class FOLResolution:
                 break
 
             differenceBtwKB = self.difference(kb, kbWithRemovedDuplicates)
-            if time.time() - self.startTime > 10:
+            if time.time() - self.startTime > 25:
                 break
 
             # print("Difference between KB and KB with removed duplicates: ")
@@ -463,7 +466,7 @@ class FOLResolution:
 
 def main():
     fol = FOLResolution()
-    fol.processInput('testcases/test_case_10/input.txt')
+    fol.processInput('input.txt')
     fol.writeOutput()
 
 if __name__ == "__main__":
